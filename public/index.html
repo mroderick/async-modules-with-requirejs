@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="vendor/requirejs/require.js"></script>
+    </head>
+    <body>
+        <script>
+            (function(){
+                define('cars', function(){
+                    var cars = ['Morgan', 'Austin', 'Morris', 'Bentley', 'Jaguar', 'Rolls Royce', 'Aston Martin'];
+
+                    function get(callback){
+                        setTimeout(function(){
+                            return callback(cars);
+                        });
+                    }
+
+                    return {
+                        get : get
+                    };
+                });
+
+                define('actualCarsSource', [
+                    'vendor/q/q',
+                    'cars'
+                ], function(
+                    Q,
+                    cars
+                ){
+                    var promise;
+
+                    return {
+                        get : function requestCars(forceNew){
+                            var deferred;
+
+                            if (forceNew || !promise){
+                                deferred = Q.defer();
+                                promise = deferred.promise;
+
+                                cars.get(deferred.resolve);
+                            }
+
+                            return promise;
+                        }
+                    }
+                });
+
+                define('fakeDataSource', [
+                    'vendor/q/q'
+                ], function(
+                    Q
+                ){
+                    return {
+                        get : function get(){
+                            return Q(['Opel', 'Audi', 'Mercedes Benz', 'Volkswagen', 'BMW']);
+                        }
+                    };
+                });
+
+                define('carsView', function(){
+
+                    function writeMeSomeCars(cars){
+                        document.write('<pre>' + JSON.stringify(cars, '', '  ') + '</pre>');
+                        console.log('carsView.render:', cars);
+                    }
+
+                    return {
+                        // by passing a single function, we're minimising the view's knowledge of
+                        // the datasource
+                        logit: function logit(fetchCars){
+                            var requestingCars = fetchCars();
+
+                            requestingCars.then(writeMeSomeCars);
+                        }
+                    }
+                });
+
+                define('app', [
+                    'fakeDataSource',
+                    'actualCarsSource',
+                    'carsView'
+                ], function(
+                    fakeDataSource,
+                    actualCarsSource,
+                    carsView
+                ){
+                    function main(){
+                        var // compose a function for the view to call, that forces a cache update
+                            fetchNewCars = actualCarsSource.get.bind(actualCarsSource, true),
+
+                            // compose a function for the view to call, that uses the cache
+                            fetchCachedCars = actualCarsSource.get.bind(actualCarsSource, false);
+
+                        carsView.logit(fetchNewCars);
+
+                        carsView.logit(fetchCachedCars);
+
+                        // pass in a fake datasource
+                        carsView.logit(fakeDataSource.get);
+                    }
+
+                    return {
+                        run : main
+                    }
+                });
+
+                require(['app'], function(app){
+                    app.run();
+                });
+            }());
+        </script>
+    </body>
+</html>

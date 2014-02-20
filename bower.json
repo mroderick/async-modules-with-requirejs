@@ -1,0 +1,22 @@
+{
+  "name": "async-modules",
+  "version": "0.0.0",
+  "authors": [
+    "Morgan Roderick <morgan@roderick.dk>"
+  ],
+  "description": "Codified thoughts on how to implement async modules",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "requirejs": "~2.1.11",
+    "q": "~1.0.0",
+    "underscore": "~1.6.0"
+  }
+}
